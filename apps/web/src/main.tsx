@@ -12,7 +12,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router";
 
-import { Root } from "./root.js";
+import { Root, rootLoader } from "./root.js";
 import { ChapterPage, chapterLoader } from "./routes/chapter.js";
 import { CoursePage, courseLoader } from "./routes/course.js";
 import { HomePage, homeLoader } from "./routes/home.js";
@@ -21,6 +21,7 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <Root />,
+    loader: rootLoader,
     children: [
       { index: true, element: <HomePage />, loader: homeLoader },
       {

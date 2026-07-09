@@ -14,6 +14,7 @@ import type {
   CourseWithChapters,
   CreateMessageInput,
   Message,
+  NavCourse,
 } from "@app/shared";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -35,6 +36,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   listCourses: () => request<Course[]>("/api/courses"),
+  getTree: () => request<NavCourse[]>("/api/courses/tree"),
   getCourse: (slug: string) => request<CourseWithChapters>(`/api/courses/${slug}`),
   getChapter: (slug: string) => request<ChapterDetail>(`/api/chapters/${slug}`),
 

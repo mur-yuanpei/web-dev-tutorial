@@ -1,0 +1,44 @@
+# ---------------------------------------------------------------
+# Docker build 上下文过滤
+# docker build 时，会先把整个 context 目录打包上传给 daemon，
+# 排除掉这里列出的路径能大幅加速构建、避免把敏感文件塞进镜像。
+# ---------------------------------------------------------------
+
+# 依赖：镜像里会重新装
+node_modules/
+**/node_modules/
+
+# 构建产物：镜像里会重新 build
+dist/
+**/dist/
+.next/
+.vite/
+.turbo/
+**/.turbo/
+build/
+
+# 敏感文件：绝不能进镜像
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+
+# git 元数据：装 git 才用得上
+.git/
+.gitignore
+
+# 编辑器 / OS 杂物
+.vscode/
+.idea/
+.DS_Store
+*.log
+
+# CI / 部署元数据：镜像不需要
+.github/
+deploy/
+
+# 自身
+Dockerfile
+**/Dockerfile
+.dockerignore

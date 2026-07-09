@@ -93,6 +93,15 @@ docker exec -it web-tutor-postgres psql -U dev -d webtutor
 
 每章读完之后，**打开对应的源码文件**看一遍真实实现（README 中提到的路径都可以直接跳过去）。看代码是学习最快的方式。
 
+## 部署到腾讯云
+
+项目已配好完整的 GitHub Actions CI/CD：push 到 `main` 就会自动构建 Docker 镜像、推到 GHCR、SSH 到腾讯云 CVM 上完成 pull + migrate + up。详见 **[deploy/README.md](./deploy/README.md)** —— 里面讲清楚了：
+
+- CVM 首次准备（装 Docker、生成 SSH 密钥、配 GitHub Secrets）
+- 每次部署会发生什么
+- 如何回滚
+- 各种"为什么"的 FAQ
+
 ## 项目本身如何演进
 
 想让学生做贡献？他们可以：

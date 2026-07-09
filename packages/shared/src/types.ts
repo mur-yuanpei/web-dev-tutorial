@@ -63,6 +63,21 @@ export const chapterDetailSchema = chapterSchema.extend({
 });
 export type ChapterDetail = z.infer<typeof chapterDetailSchema>;
 
+/** 侧栏导航树：所有课程 + 每门课程的章节（仅 slug + title + demoKey） */
+export const navChapterSchema = z.object({
+  slug: z.string(),
+  title: z.string(),
+  demoKey: z.string().nullable(),
+});
+export const navCourseSchema = z.object({
+  slug: z.string(),
+  title: z.string(),
+  order: z.number().int(),
+  chapters: z.array(navChapterSchema),
+});
+export type NavCourse = z.infer<typeof navCourseSchema>;
+export type NavChapter = z.infer<typeof navChapterSchema>;
+
 // --------------------------------------------------------------
 // Demo 相关：章节里的可交互小组件用到的接口
 // --------------------------------------------------------------

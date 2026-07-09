@@ -2,7 +2,7 @@
 // 课程相关路由
 // --------------------------------------------------------------
 
-import type { Course, CourseWithChapters } from "@app/shared";
+import type { Course, CourseWithChapters, NavCourse } from "@app/shared";
 import { asc, eq } from "drizzle-orm";
 import { Hono } from "hono";
 
@@ -22,6 +22,31 @@ coursesRoute.get("/", async (c) => {
     description: r.description,
     order: r.order,
     createdAt: r.createdAt.toISOString(),
+  }));
+
+  return c.json(result);
+});
+
+// GET /api/courses/tree —— 侧栏导航：所有课程 + 每门的章节（精简字段）
+coursesRoute.get("/tree", async (c) => {
+  const rows = await db.query.courses.findMany({
+    orderBy: [asc(courses.order)],
+    with: {
+      chapters: {
+        orderBy: [asc(chapters.order)],
+      },
+    },
+  });
+
+  const result: NavCourse[] = rows.map((course) => ({
+    slug: course.slug,
+    title: course.title,
+    order: course.order,
+    chapters: course.chapters.map((ch) => ({
+      slug: ch.slug,
+      title: ch.title,
+      demoKey: ch.demoKey,
+    })),
   }));
 
   return c.json(result);
