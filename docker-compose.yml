@@ -1,0 +1,32 @@
+# --------------------------------------------------------------
+# Docker Compose 文件：定义"用一条命令能起来的一组服务"
+# 这里只有 PostgreSQL 一个服务，学生可用来学习：
+#   - 数据库不是"代码库里的一个文件"，而是一个独立进程
+#   - 服务通过 端口 与外界通信
+#   - volume 让数据在容器重启后不丢失
+# 启动：  bun run db:up   （即 docker compose up -d）
+# 停止：  bun run db:down
+# --------------------------------------------------------------
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: web-tutor-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: webtutor
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dev -d webtutor"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+    name: web-dev-tutorial_pgdata

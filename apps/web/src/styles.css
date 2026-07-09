@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --------------------------------------------------------------
+ * 少量全局样式补充
+ * -------------------------------------------------------------- */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+/* Markdown 里的代码块深色主题下更柔和 */
+.prose pre {
+  @apply bg-slate-900 text-slate-100;
+}
+
+.dark .prose pre {
+  @apply bg-black/60;
+}
