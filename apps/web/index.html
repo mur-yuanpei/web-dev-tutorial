@@ -3,9 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Web 开发启蒙教程</title>
+    <title>元培学院 Web 开发教程</title>
+    <link rel="icon" type="image/png" href="/assets/yuanpei-logo.png" />
+
+    <!-- 学院风字体：Inter（正文/UI）+ Source Serif 4（标题）+ Noto Serif SC（中文衬线）+ JetBrains Mono（代码） -->
+    <!-- 走 Google Fonts CDN，preconnect 加速 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Noto+Serif+SC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
   </head>
-  <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+  <body>
     <!-- 挂载点：React 会把整个应用渲染进这个 div -->
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

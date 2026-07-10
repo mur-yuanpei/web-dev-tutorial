@@ -6,10 +6,10 @@
 //   - 生产环境部署新版本时
 // --------------------------------------------------------------
 
-import { drizzle } from "drizzle-orm/postgres-js";
-import { migrate } from "drizzle-orm/postgres-js/migrator";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { drizzle } from "drizzle-orm/postgres-js";
+import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 
 import { env } from "../env.js";

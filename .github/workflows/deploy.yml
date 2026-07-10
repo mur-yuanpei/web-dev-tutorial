@@ -131,6 +131,10 @@ jobs:
           docker compose --env-file .env.prod -f docker-compose.prod.yml \
             run --rm api bun run apps/api/src/db/migrate.ts
 
+          # 3.5. 跑 seed —— 幂等，空库时才灌，已有数据自动跳过
+          docker compose --env-file .env.prod -f docker-compose.prod.yml \
+            run --rm api bun run apps/api/src/db/seed.ts
+
           # 4. 启动 api + web，替换旧容器
           docker compose --env-file .env.prod -f docker-compose.prod.yml \
             up -d --remove-orphans api web
@@ -138,16 +142,18 @@ jobs:
           # 5. 清理无引用的旧镜像层
           docker image prune -f
 
-  # ---------------- Job 3: 手动触发时的 seed ----------------
+  # ---------------- Job 3: 手动触发时的强制重灌 seed ----------------
+  # 用途：当 seed.ts 里的教程内容有更新，想让线上同步刷新时手动触发
+  # 走 --force：即便数据库已有内容也会清空重灌
   seed:
-    name: Seed tutorial content
+    name: Force re-seed tutorial content
     needs: build
     runs-on: self-hosted
     if: github.event_name == 'workflow_dispatch' && inputs.run_seed == 'true'
     steps:
-      - name: Run seed inside api container
+      - name: Run seed --force inside api container
         working-directory: /opt/web-tutor
         run: |
           set -euo pipefail
           docker compose --env-file .env.prod -f docker-compose.prod.yml \
-            run --rm api bun run apps/api/src/db/seed.ts
+            run --rm api bun run apps/api/src/db/seed.ts --force

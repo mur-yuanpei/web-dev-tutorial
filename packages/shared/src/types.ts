@@ -54,12 +54,8 @@ export type CourseWithChapters = z.infer<typeof courseWithChaptersSchema>;
 export const chapterDetailSchema = chapterSchema.extend({
   course: courseSchema,
   sections: z.array(sectionSchema),
-  prevChapter: z
-    .object({ slug: z.string(), title: z.string() })
-    .nullable(),
-  nextChapter: z
-    .object({ slug: z.string(), title: z.string() })
-    .nullable(),
+  prevChapter: z.object({ slug: z.string(), title: z.string() }).nullable(),
+  nextChapter: z.object({ slug: z.string(), title: z.string() }).nullable(),
 });
 export type ChapterDetail = z.infer<typeof chapterDetailSchema>;
 

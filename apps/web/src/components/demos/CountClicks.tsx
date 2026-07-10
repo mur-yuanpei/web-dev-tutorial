@@ -1,9 +1,11 @@
 // --------------------------------------------------------------
-// Demo 组件：CountClicks
-// 演示"前端触发 → 后端处理 → 落库 → 返回新值 → 前端更新"完整链路
+// Demo 组件：CountClicks —— 前端 → 后端 → 落库 完整链路
 // --------------------------------------------------------------
 
+import { MousePointerClick } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "@/components/ui/card";
 import { api } from "../../lib/api.js";
 
 export function CountClicks() {
@@ -25,24 +27,28 @@ export function CountClicks() {
   }
 
   return (
-    <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-900 space-y-3">
-      <p className="text-sm text-slate-600 dark:text-slate-400">
-        每点一次，后端会往 <code>demo_events</code> 表插入一行；返回值是当前累计数。
-        你的点击会永久存在数据库里，刷新页面也不会重置。
-      </p>
-      <div className="flex items-center gap-4">
-        <button
-          type="button"
-          onClick={handleClick}
-          disabled={loading}
-          className="px-4 py-2 rounded-md bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
-        >
+    <Card>
+      <CardHeader>
+        <CardDescription>
+          每点一次，后端往 <code className="text-xs">demo_events</code> 表插一行；返回累计数。
+          刷新页面数据不会重置 —— 存在数据库里。
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-wrap items-center gap-4">
+        <Button onClick={handleClick} disabled={loading} variant="default">
+          <MousePointerClick />
           点我 +1
-        </button>
-        <span className="text-lg font-semibold">
-          当前累计：{count === null ? "加载中..." : count}
-        </span>
-      </div>
-    </div>
+        </Button>
+        <div className="text-sm">
+          当前累计：
+          <span className="font-mono text-lg font-semibold text-[--color-primary] ml-1 tabular-nums">
+            {count === null ? "..." : count}
+          </span>
+        </div>
+      </CardContent>
+      <CardFooter className="text-xs text-[--color-muted-foreground]">
+        源码 · apps/web/src/components/demos/CountClicks.tsx
+      </CardFooter>
+    </Card>
   );
 }

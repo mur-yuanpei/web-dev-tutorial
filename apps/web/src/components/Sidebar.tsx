@@ -1,32 +1,38 @@
 // --------------------------------------------------------------
-// 左侧导航栏：显示所有课程 → 章节树，高亮当前路由
-// - 桌面端：常驻左侧
-// - 移动端：默认收起，靠一个按钮打开抽屉
+// 左侧导航栏（元培学院酒红古典风）
+// - 深酒红底 + 白色 serif 文字
+// - 课程带大号 serif 数字前缀 (00 / 01 / 02 ...)
+// - 当前项高亮为"下划线 + 加粗"（学院气质，不用色块）
 // --------------------------------------------------------------
 
 import type { NavCourse } from "@app/shared";
-import { useEffect, useState } from "react";
+import { ChevronRight, Home } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { NavLink, useLocation, useParams } from "react-router";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+import { useSearch } from "@/root";
 
 interface SidebarProps {
   tree: NavCourse[];
-  open: boolean;
-  onClose: () => void;
+  /** 移动端里 —— 点了任意链接后通知外层关闭抽屉 */
+  onNavigate?: () => void;
+  className?: string;
 }
 
-export function Sidebar({ tree, open, onClose }: SidebarProps) {
+export function Sidebar({ tree, onNavigate, className }: SidebarProps) {
   const location = useLocation();
   const params = useParams();
+  const { query } = useSearch();
 
-  // 计算当前激活的 course slug（用于自动展开对应课程）
   const activeCourseSlug = getActiveCourseSlug(location.pathname, params, tree);
 
-  // 用户手动折叠/展开的状态（key: courseSlug → collapsed）
+  // 折叠状态：不在当前课程内的会默认折叠
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
-  // 路由变化时自动关闭移动端抽屉
+  // 路由变化时通知外层
   useEffect(() => {
-    onClose();
+    onNavigate?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
@@ -34,126 +40,148 @@ export function Sidebar({ tree, open, onClose }: SidebarProps) {
     setCollapsed((prev) => ({ ...prev, [slug]: !prev[slug] }));
   }
 
-  return (
-    <>
-      {/* 移动端遮罩 */}
-      {open && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/40 z-20"
-          onClick={onClose}
-        />
-      )}
+  // 搜索过滤：course.title 命中或 chapter.title 命中都保留
+  const filteredTree = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return tree;
+    return tree
+      .map((course) => {
+        const courseHit = course.title.toLowerCase().includes(q);
+        const filteredChapters = course.chapters.filter((ch) => ch.title.toLowerCase().includes(q));
+        // 课程本身命中 → 展示全部章节；否则只展示命中章节
+        return {
+          ...course,
+          chapters: courseHit ? course.chapters : filteredChapters,
+          _hasMatch: courseHit || filteredChapters.length > 0,
+        };
+      })
+      .filter((c) => c._hasMatch);
+  }, [tree, query]);
 
-      <aside
-        className={[
-          "fixed lg:sticky lg:top-16 z-30 lg:z-0",
-          "top-0 left-0 h-screen lg:h-[calc(100vh-4rem)]",
-          "w-72 shrink-0",
-          "bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800",
-          "overflow-y-auto",
-          "transition-transform lg:transform-none",
-          open ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
-        ].join(" ")}
-      >
-        <nav className="p-4 space-y-3">
+  const hasQuery = query.trim().length > 0;
+  const noResult = hasQuery && filteredTree.length === 0;
+
+  return (
+    <div
+      className={cn(
+        "flex flex-col h-full w-full overflow-hidden bg-[--color-sidebar] text-[--color-sidebar-foreground]",
+        className,
+      )}
+    >
+      <ScrollArea className="flex-1">
+        <nav className="p-4 space-y-0.5">
           <NavLink
             to="/"
             end
             className={({ isActive }) =>
-              [
-                "block px-3 py-2 rounded-md text-sm font-medium",
+              cn(
+                "flex items-center gap-2 px-2 py-2 text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
-              ].join(" ")
+                  ? "text-[--color-sidebar-accent] font-semibold"
+                  : "text-[--color-sidebar-foreground]/85 hover:text-[--color-sidebar-foreground]",
+              )
             }
           >
-            🏠 首页
+            <Home className="h-4 w-4" />
+            首页
           </NavLink>
 
-          {tree.map((course, i) => {
-            const isCollapsed =
-              collapsed[course.slug] ?? course.slug !== activeCourseSlug;
-
-            return (
-              <div key={course.slug} className="space-y-1">
-                <div className="flex items-stretch">
-                  <NavLink
-                    to={`/courses/${course.slug}`}
-                    className={({ isActive }) =>
-                      [
-                        "flex-1 px-3 py-1.5 rounded-l-md text-sm font-semibold",
-                        isActive
-                          ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                          : "text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800",
-                      ].join(" ")
-                    }
-                  >
-                    <span className="text-slate-400 font-mono text-xs mr-2">
-                      {String(i).padStart(2, "0")}
-                    </span>
-                    {course.title}
-                  </NavLink>
-                  <button
-                    type="button"
-                    onClick={() => toggle(course.slug)}
-                    aria-label={isCollapsed ? "展开" : "折叠"}
-                    className="px-2 rounded-r-md text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                  >
-                    <span
-                      className={[
-                        "inline-block transition-transform text-xs",
-                        isCollapsed ? "" : "rotate-90",
-                      ].join(" ")}
-                    >
-                      ▶
-                    </span>
-                  </button>
-                </div>
-
-                {!isCollapsed && (
-                  <ul className="ml-4 pl-3 border-l border-slate-200 dark:border-slate-800 space-y-0.5">
-                    {course.chapters.map((ch) => (
-                      <li key={ch.slug}>
-                        <NavLink
-                          to={`/chapters/${ch.slug}`}
-                          className={({ isActive }) =>
-                            [
-                              "flex items-center gap-1.5 px-2 py-1 rounded text-sm",
-                              isActive
-                                ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium"
-                                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800",
-                            ].join(" ")
-                          }
-                        >
-                          <span className="truncate">{ch.title}</span>
-                          {ch.demoKey && (
-                            <span
-                              className="text-[10px] shrink-0 text-amber-600 dark:text-amber-400"
-                              title="含可交互 Demo"
-                            >
-                              ●
-                            </span>
-                          )}
-                        </NavLink>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+          <div className="pt-3 space-y-1">
+            {noResult && (
+              <div className="px-2 py-6 text-center text-sm text-[--color-sidebar-muted]">
+                未找到与"{query}"相关的课程
               </div>
-            );
-          })}
+            )}
+            {filteredTree.map((course) => {
+              const i = tree.findIndex((c) => c.slug === course.slug);
+              const isActiveCourse = course.slug === activeCourseSlug;
+              // 搜索时强制展开命中的课程
+              const isCollapsed = hasQuery
+                ? false
+                : (collapsed[course.slug] ?? course.slug !== activeCourseSlug);
+
+              return (
+                <div key={course.slug} className="pt-2">
+                  <div className="flex items-stretch group min-w-0">
+                    <NavLink
+                      to={`/courses/${course.slug}`}
+                      className={({ isActive }) =>
+                        cn(
+                          "flex-1 flex items-baseline gap-2.5 px-2 py-1.5 min-w-0 transition-colors",
+                          isActive || isActiveCourse
+                            ? "text-[--color-sidebar-accent] font-semibold"
+                            : "text-[--color-sidebar-foreground]/90 hover:text-[--color-sidebar-foreground]",
+                        )
+                      }
+                    >
+                      <span
+                        className={cn(
+                          "font-serif text-lg leading-none w-6 shrink-0 tabular-nums",
+                          isActiveCourse
+                            ? "text-[--color-sidebar-accent]"
+                            : "text-[--color-sidebar-muted]",
+                        )}
+                      >
+                        {String(i).padStart(2, "0")}
+                      </span>
+                      <span
+                        className={cn(
+                          "font-serif text-[15px] leading-snug truncate min-w-0",
+                          isActiveCourse && "underline decoration-2 underline-offset-4",
+                        )}
+                        title={course.title}
+                      >
+                        {course.title}
+                      </span>
+                    </NavLink>
+                    <button
+                      type="button"
+                      onClick={() => toggle(course.slug)}
+                      aria-label={isCollapsed ? "展开" : "折叠"}
+                      className="px-2 shrink-0 text-[--color-sidebar-muted] hover:text-[--color-sidebar-foreground]"
+                    >
+                      <ChevronRight
+                        className={cn(
+                          "h-3.5 w-3.5 transition-transform",
+                          !isCollapsed && "rotate-90",
+                        )}
+                      />
+                    </button>
+                  </div>
+
+                  {!isCollapsed && (
+                    <ul className="ml-8 mt-1 space-y-0.5 border-l border-[--color-sidebar-border] pl-3 min-w-0">
+                      {course.chapters.map((ch) => (
+                        <li key={ch.slug} className="min-w-0">
+                          <NavLink
+                            to={`/chapters/${ch.slug}`}
+                            title={ch.title}
+                            className={({ isActive }) =>
+                              cn(
+                                "block px-2 py-1 text-sm truncate transition-colors",
+                                isActive
+                                  ? "text-[--color-sidebar-accent] font-medium"
+                                  : "text-[--color-sidebar-foreground]/70 hover:text-[--color-sidebar-foreground]",
+                              )
+                            }
+                          >
+                            {ch.title}
+                          </NavLink>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </nav>
-      </aside>
-    </>
+      </ScrollArea>
+    </div>
   );
 }
 
-/**
- * 根据当前路由推断激活的课程 slug，用来自动展开对应课程。
- * - /courses/:slug             → :slug
- * - /chapters/:slug            → slug 的前缀部分（seed 里章节 slug 是 "courseSlug--chapterName"）
- */
+/** 从当前路由推断激活课程 —— 用来自动展开对应课程 */
 function getActiveCourseSlug(
   pathname: string,
   params: { slug?: string },
@@ -163,7 +191,6 @@ function getActiveCourseSlug(
     return params.slug;
   }
   if (pathname.startsWith("/chapters/") && params.slug) {
-    // 优先精确匹配（万一未来章节 slug 不再遵循前缀规则）
     for (const course of tree) {
       if (course.chapters.some((ch) => ch.slug === params.slug)) {
         return course.slug;

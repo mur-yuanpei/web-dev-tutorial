@@ -43,8 +43,7 @@ export const api = {
   // Demo 接口
   hello: () => request<{ message: string; time: string }>("/api/demo/hello"),
   getClickCount: () => request<ClickCount>("/api/demo/click"),
-  addClick: () =>
-    request<ClickCount>("/api/demo/click", { method: "POST" }),
+  addClick: () => request<ClickCount>("/api/demo/click", { method: "POST" }),
   listMessages: () => request<Message[]>("/api/demo/messages"),
   postMessage: (input: CreateMessageInput) =>
     request<Message>("/api/demo/messages", {

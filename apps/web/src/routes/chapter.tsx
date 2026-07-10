@@ -1,17 +1,24 @@
 // --------------------------------------------------------------
-// 章节详情页：Markdown 内容 + 底部可交互 Demo + 前后章节导航
+// 章节详情页（元培古典风）：Markdown 正文 + 底部 Demo + 前后章节导航
+// - 提取 h2/h3 传给右侧 TOC（通过 root.tsx 的 useTocSetter）
+// - code / note section 用主题色 + 学院风装饰
 // --------------------------------------------------------------
 
 import type { ChapterDetail } from "@app/shared";
-import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router";
-
+import { ChevronLeft, ChevronRight, FlaskConical } from "lucide-react";
+import { useEffect, useMemo } from "react";
+import { Link, type LoaderFunctionArgs, useLoaderData } from "react-router";
+import { OrnamentDivider } from "@/components/brand/OrnamentDivider";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { DemoByKey } from "../components/demos/index.js";
 import { MarkdownRenderer } from "../components/MarkdownRenderer.js";
 import { api } from "../lib/api.js";
+import { extractHeadings } from "../lib/toc.js";
+import { useTocSetter } from "../root.js";
 
-export async function chapterLoader({
-  params,
-}: LoaderFunctionArgs): Promise<ChapterDetail> {
+export async function chapterLoader({ params }: LoaderFunctionArgs): Promise<ChapterDetail> {
   const slug = params.slug;
   if (!slug) throw new Response("缺少章节 slug", { status: 400 });
   return await api.getChapter(slug);
@@ -19,34 +26,52 @@ export async function chapterLoader({
 
 export function ChapterPage() {
   const chapter = useLoaderData() as ChapterDetail;
+  const setHeadings = useTocSetter();
+
+  const headings = useMemo(
+    () =>
+      chapter.sections
+        .filter((s) => s.kind === "text" || s.kind === "note")
+        .flatMap((s) => extractHeadings(s.content)),
+    [chapter.sections],
+  );
+
+  useEffect(() => {
+    setHeadings(headings);
+    return () => setHeadings([]);
+  }, [headings, setHeadings]);
 
   return (
-    <div className="space-y-8">
-      <nav className="text-sm text-slate-500 flex items-center gap-2">
-        <Link to="/" className="hover:text-blue-600">
+    <article className="space-y-8">
+      {/* 面包屑 */}
+      <nav className="text-sm text-[--color-muted-foreground] flex items-center gap-2">
+        <Link to="/" className="hover:text-[--color-primary]">
           课程列表
         </Link>
-        <span>/</span>
-        <Link
-          to={`/courses/${chapter.course.slug}`}
-          className="hover:text-blue-600"
-        >
+        <span className="text-[--color-border]">/</span>
+        <Link to={`/courses/${chapter.course.slug}`} className="hover:text-[--color-primary]">
           {chapter.course.title}
         </Link>
       </nav>
 
-      <header className="space-y-2 border-b border-slate-200 dark:border-slate-800 pb-4">
-        <h1 className="text-3xl font-bold">{chapter.title}</h1>
-        <p className="text-slate-600 dark:text-slate-400">{chapter.summary}</p>
+      {/* 标题区 */}
+      <header className="space-y-3 pb-2">
+        <h1 className="font-serif text-3xl md:text-4xl font-bold tracking-tight leading-tight text-[--color-primary]">
+          {chapter.title}
+        </h1>
+        <p className="text-lg text-[--color-muted-foreground] leading-relaxed">{chapter.summary}</p>
       </header>
 
+      <OrnamentDivider />
+
+      {/* 正文 */}
       <div className="space-y-6">
         {chapter.sections.map((s) => {
           if (s.kind === "code") {
             return (
               <pre
                 key={s.id}
-                className="p-4 rounded-lg bg-slate-900 text-slate-100 overflow-x-auto text-sm"
+                className="p-4 rounded-md bg-[--color-secondary] border border-[--color-border] border-l-[3px] border-l-[--color-primary] overflow-x-auto text-sm font-mono"
               >
                 <code>{s.content}</code>
               </pre>
@@ -54,52 +79,73 @@ export function ChapterPage() {
           }
           if (s.kind === "note") {
             return (
-              <div
+              <Card
                 key={s.id}
-                className="p-4 rounded-lg border-l-4 border-amber-400 bg-amber-50 dark:bg-amber-900/20"
+                className="border-l-[3px] border-l-[--color-accent] bg-[--color-secondary]/60"
               >
-                <MarkdownRenderer content={s.content} />
-              </div>
+                <CardContent className="pt-6">
+                  <MarkdownRenderer content={s.content} />
+                </CardContent>
+              </Card>
             );
           }
           return <MarkdownRenderer key={s.id} content={s.content} />;
         })}
       </div>
 
+      {/* 交互 Demo */}
       {chapter.demoKey && (
-        <section className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <span>🧪 亲手试试</span>
-            <span className="text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 font-normal">
+        <section className="space-y-4 pt-4">
+          <OrnamentDivider seal="试" />
+          <h2 className="font-serif text-2xl font-semibold flex items-center gap-2 text-[--color-primary]">
+            <FlaskConical className="text-[--color-accent]" />
+            亲手试试
+            <Badge variant="outline" className="ml-1 font-mono text-[10px]">
               {chapter.demoKey}
-            </span>
+            </Badge>
           </h2>
           <DemoByKey demoKey={chapter.demoKey} />
         </section>
       )}
 
-      <nav className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
+      {/* 前后章节 */}
+      <Separator />
+      <nav className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
         {chapter.prevChapter ? (
-          <Link
-            to={`/chapters/${chapter.prevChapter.slug}`}
-            className="text-sm text-blue-600 hover:underline"
-          >
-            ← {chapter.prevChapter.title}
+          <Link to={`/chapters/${chapter.prevChapter.slug}`}>
+            <Card className="transition-all hover:border-[--color-primary] hover:shadow-sm h-full">
+              <CardContent className="p-4">
+                <div className="text-xs text-[--color-muted-foreground] flex items-center gap-1">
+                  <ChevronLeft className="h-3 w-3" />
+                  上一章
+                </div>
+                <div className="mt-1 font-serif font-medium text-[--color-primary]">
+                  {chapter.prevChapter.title}
+                </div>
+              </CardContent>
+            </Card>
           </Link>
         ) : (
           <span />
         )}
         {chapter.nextChapter ? (
-          <Link
-            to={`/chapters/${chapter.nextChapter.slug}`}
-            className="text-sm text-blue-600 hover:underline ml-auto"
-          >
-            {chapter.nextChapter.title} →
+          <Link to={`/chapters/${chapter.nextChapter.slug}`} className="sm:ml-auto">
+            <Card className="transition-all hover:border-[--color-primary] hover:shadow-sm h-full">
+              <CardContent className="p-4 sm:text-right">
+                <div className="text-xs text-[--color-muted-foreground] flex items-center gap-1 sm:justify-end">
+                  下一章
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+                <div className="mt-1 font-serif font-medium text-[--color-primary]">
+                  {chapter.nextChapter.title}
+                </div>
+              </CardContent>
+            </Card>
           </Link>
         ) : (
           <span />
         )}
       </nav>
-    </div>
+    </article>
   );
 }

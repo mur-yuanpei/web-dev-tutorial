@@ -1,9 +1,11 @@
 // --------------------------------------------------------------
-// Demo 组件：HelloAPI
-// 最简单的"前端调后端"示例，让学生看见 fetch 的真实过程。
+// Demo 组件：HelloAPI —— 最简单的"前端调后端"示例
 // --------------------------------------------------------------
 
+import { Send } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "@/components/ui/card";
 import { api } from "../../lib/api.js";
 
 export function HelloAPI() {
@@ -21,24 +23,27 @@ export function HelloAPI() {
   }
 
   return (
-    <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-900 space-y-3">
-      <p className="text-sm text-slate-600 dark:text-slate-400">
-        点下面这个按钮，前端会向后端 <code>/api/demo/hello</code> 发一次 GET 请求。
-        打开 F12 → Network 你能看到真实的 HTTP 往返。
-      </p>
-      <button
-        type="button"
-        onClick={handleClick}
-        disabled={loading}
-        className="px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-      >
-        {loading ? "请求中..." : "调用后端"}
-      </button>
-      {message && (
-        <p className="text-sm p-3 rounded bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-          {message}
-        </p>
-      )}
-    </div>
+    <Card>
+      <CardHeader>
+        <CardDescription>
+          点下面这个按钮，前端会向后端 <code className="text-xs">/api/demo/hello</code> 发一次 GET
+          请求。打开 F12 → Network 你能看到真实的 HTTP 往返。
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Button onClick={handleClick} disabled={loading}>
+          <Send />
+          {loading ? "请求中..." : "调用后端"}
+        </Button>
+        {message && (
+          <div className="rounded-md border border-[--color-border] bg-[--color-muted] px-3 py-2 text-sm">
+            {message}
+          </div>
+        )}
+      </CardContent>
+      <CardFooter className="text-xs text-[--color-muted-foreground]">
+        源码 · apps/web/src/components/demos/HelloAPI.tsx
+      </CardFooter>
+    </Card>
   );
 }

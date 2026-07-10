@@ -8,10 +8,7 @@ import "dotenv/config";
 import { z } from "zod";
 
 const envSchema = z.object({
-  DATABASE_URL: z
-    .string()
-    .url()
-    .default("postgres://dev:dev@localhost:5432/webtutor"),
+  DATABASE_URL: z.string().url().default("postgres://dev:dev@localhost:5432/webtutor"),
   API_PORT: z.coerce.number().int().positive().default(3000),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 });

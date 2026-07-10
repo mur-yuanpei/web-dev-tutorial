@@ -4,7 +4,7 @@
 // 学生可以在浏览器 F12 → Network 里观察真实的请求响应。
 // --------------------------------------------------------------
 
-import { createMessageInput, type ClickCount, type Message } from "@app/shared";
+import { type ClickCount, createMessageInput, type Message } from "@app/shared";
 import { zValidator } from "@hono/zod-validator";
 import { desc, eq } from "drizzle-orm";
 import { Hono } from "hono";
@@ -29,10 +29,7 @@ demoRoute.post("/click", async (c) => {
     payload: { at: new Date().toISOString() },
   });
 
-  const rows = await db
-    .select()
-    .from(demoEvents)
-    .where(eq(demoEvents.demoKey, "count-clicks"));
+  const rows = await db.select().from(demoEvents).where(eq(demoEvents.demoKey, "count-clicks"));
 
   const result: ClickCount = { count: rows.length };
   return c.json(result);
@@ -40,10 +37,7 @@ demoRoute.post("/click", async (c) => {
 
 // GET /api/demo/click —— 取当前计数（不 +1）
 demoRoute.get("/click", async (c) => {
-  const rows = await db
-    .select()
-    .from(demoEvents)
-    .where(eq(demoEvents.demoKey, "count-clicks"));
+  const rows = await db.select().from(demoEvents).where(eq(demoEvents.demoKey, "count-clicks"));
 
   const result: ClickCount = { count: rows.length };
   return c.json(result);

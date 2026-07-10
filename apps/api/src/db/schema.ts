@@ -34,9 +34,7 @@ export const courses = pgTable(
     title: text("title").notNull(),
     description: text("description").notNull(),
     order: integer("order").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
     slugIdx: uniqueIndex("courses_slug_idx").on(table.slug),
@@ -59,9 +57,7 @@ export const chapters = pgTable(
     order: integer("order").notNull(),
     // 可选：如果不为 null，前端会挂载对应的 Demo 组件
     demoKey: text("demo_key"),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
     slugIdx: uniqueIndex("chapters_slug_idx").on(table.slug),
@@ -100,9 +96,7 @@ export const demoEvents = pgTable(
     id: serial("id").primaryKey(),
     demoKey: text("demo_key").notNull(),
     payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
     demoKeyIdx: index("demo_events_demo_key_idx").on(table.demoKey),

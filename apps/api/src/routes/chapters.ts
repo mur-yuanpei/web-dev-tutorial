@@ -33,18 +33,14 @@ chaptersRoute.get("/:slug", async (c) => {
   const [prevRow] = await db
     .select({ slug: chapters.slug, title: chapters.title })
     .from(chapters)
-    .where(
-      and(eq(chapters.courseId, chapter.courseId), lt(chapters.order, chapter.order)),
-    )
+    .where(and(eq(chapters.courseId, chapter.courseId), lt(chapters.order, chapter.order)))
     .orderBy(asc(chapters.order))
     .limit(1);
 
   const [nextRow] = await db
     .select({ slug: chapters.slug, title: chapters.title })
     .from(chapters)
-    .where(
-      and(eq(chapters.courseId, chapter.courseId), gt(chapters.order, chapter.order)),
-    )
+    .where(and(eq(chapters.courseId, chapter.courseId), gt(chapters.order, chapter.order)))
     .orderBy(asc(chapters.order))
     .limit(1);
 
