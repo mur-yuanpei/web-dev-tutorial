@@ -1779,7 +1779,24 @@ SELECT id, slug, title FROM courses LIMIT 3;
 - \`\\l\` 列所有数据库
 - \`\\?\` 看所有 psql 命令帮助
 
-## 方案 B：Drizzle Studio（可视化）
+## 方案 B：pgweb（浏览器可视化，最省心）
+
+不喜欢命令行？打开浏览器，输入 http://localhost:8081
+
+这是本项目 \`docker-compose.yml\` 里内置的 **pgweb** —— 一个用 Go 写的轻量 PostgreSQL Web 客户端。**通过 \`PGWEB_DATABASE_URL\` 环境变量传入连接串**，容器一启动就自动连好，**打开页面直接进库，什么都不用填**。
+
+进去之后你能：
+
+- 点左侧表名 → 看到数据、结构、外键
+- 顶部 "Query" → 直接执行 SQL
+- 顶部 "History" → 看你跑过的 SQL 历史
+- Export → 导出 CSV / JSON
+
+**优点**：真正的零配置；**缺点**：功能没桌面 GUI 全（比如不支持批量单元格编辑）。
+
+> ⚠️ 只在本地开发用！**永远不要**把 pgweb 暴露到公网上 —— 里面的连接串包含明文密码。
+
+## 方案 C：Drizzle Studio（可视化）
 
 不喜欢命令行？跑一条：
 
@@ -1789,7 +1806,7 @@ bun run db:studio
 
 浏览器会打开 \`https://local.drizzle.studio\`，看到所有表的**可视化界面**。可以点表看数据、可以直接编辑单元格、可以跑 SQL。
 
-## 方案 C：DBeaver / TablePlus（GUI 工具）
+## 方案 D：DBeaver / TablePlus（桌面 GUI 工具）
 
 如果你想用桌面 GUI（DBeaver 是免费的），连接信息：
 
@@ -3864,6 +3881,384 @@ docker exec web-tutor-postgres pg_dump -U dev <你的库名> | gzip > /backup/$(
             kind: "note",
             content:
               "🎓 **完结**：从 clone 到部署到迭代，脚手架帮你省下的时间应该都用来打磨产品体验。祝你早日做出让自己自豪的项目。",
+          },
+        ],
+      },
+    ],
+  },
+
+  {
+    slug: "with-ai",
+    title: "用 AI 一起写代码",
+    description: "让 Claude Code 等 AI 编码助手基于这个脚手架 5 倍速开发",
+    chapters: [
+      {
+        slug: "why-ai-coding",
+        title: "为什么要用 AI 写代码",
+        summary: "AI 不是替代你，是让你集中精力在有创造性的部分",
+        sections: [
+          {
+            kind: "text",
+            content: `# 为什么要用 AI 写代码
+
+> **回顾**：上一门课教你把这个脚手架当模板做自己的项目。
+> **本章**：讲一件更重要的事 —— 让 AI 帮你写。
+> **为什么**：2026 年的软件开发已经是"人 + AI 协作"的常态。会用 AI 的开发者，产出是不会用的 5-10 倍。
+
+
+## AI 编码助手能做到什么
+
+**不是**"给我写一个网站"这种笼统请求 —— 而是把你从重复劳动里解放出来：
+
+- **"帮我给 posts 表加一个 view_count 字段，包括 migration、schema、API、前端展示"** —— 一个请求，跨 3-4 个文件的完整改动
+- **"这个页面的滚动条在 iPad 上会跳，帮我修"** —— AI 会打开相关文件、定位、写补丁
+- **"给这个 Hono 路由加一个查询参数 sort=asc|desc，用 zod 校验"** —— 涉及 schema 定义、路由改动、前端调用同步
+- **"这段代码为什么这么慢"** —— AI 会读代码、指出问题、给出改法
+
+**AI 不擅长什么**（重要，别把它当上帝）：
+
+- **产品决策**：AI 不知道"你的用户想要什么"，只知道"你的代码想干什么"
+- **复杂业务规则**：涉及很多隐含约束的场景，AI 容易漏
+- **视觉审美**：AI 能实现你描述的样式，但不会主动提"这个不好看"
+- **debug 到最后一米**：AI 常常把你带到 80%，最后 20% 还是要你自己顶
+
+**思路**：把 AI 当"知识面很广、执行力很强的初级工程师"用。你负责判断、审查、拍板；AI 负责跑腿、写字。
+
+
+## 为什么这个项目特别适合和 AI 协作
+
+我们做了几件事让 AI 特别容易读懂本项目：
+
+1. **每个配置文件顶部都有中文注释**说明"是干什么的、为什么这么配"
+2. **每个 apps/packages 都有独立 README**，列清技术栈
+3. **命名规范一致**：路由、schema、类型都是相同模式
+4. **类型贯穿全栈**：\`@app/shared\` 里的 zod schema 前后端共用
+
+这些设计让 AI 读几个文件就能理解整个项目脉络，然后精确地在正确的位置改动。
+
+## AI 编码工具生态
+
+主流几款：
+
+| 工具 | 特点 |
+|---|---|
+| **[Claude Code](https://claude.com/product/claude-code)**（Anthropic 官方 CLI） | 在终端里用，直接读写你的项目文件。**本教程主推。** |
+| GitHub Copilot | 在 VSCode 里做实时补全，写代码时逐行提示 |
+| Cursor | 一个内置 AI 的 VSCode fork，聊天窗口 + Cmd+K 编辑 |
+| Windsurf | 类似 Cursor，也是一个 AI IDE |
+
+Claude Code 的优势：**在终端里跑 = 直接调 git、跑测试、看错误、改文件**，不需要人在中间转发信息。真正的"AI 帮你干活"，而不是"你帮 AI 转达"。`,
+          },
+          {
+            kind: "note",
+            content: `💡 **心态调整**：AI 写代码不是"作弊"。就像用搜索引擎不是作弊、用 Stack Overflow 不是作弊一样。AI 是新一代生产力工具。**关键是你要有判断力** —— 会看 AI 写的对不对、有没有偏离需求。所以基本功还是要学，只是学的方式变了。`,
+          },
+        ],
+      },
+      {
+        slug: "install-claude-code",
+        title: "装上 Claude Code",
+        summary: "5 分钟：拿到账号、装 CLI、在项目里跑起来",
+        sections: [
+          {
+            kind: "text",
+            content: `# 装上 Claude Code
+
+> **本章**：拿到账号、装好 CLI、能在这个项目里跑一次。
+> **目标**：读完本章你能在终端里对项目发问、让 AI 帮你改代码。
+
+
+## 前置
+
+- 一个能收邮件的邮箱
+- 网络能访问 https://claude.ai（如果不行，请自行解决网络问题，本教程不做展开）
+
+## 步骤 1：注册 Anthropic 账号
+
+打开 https://console.anthropic.com，用邮箱注册。
+
+Anthropic 是 Claude 的开发公司。Claude Code 使用你的 Anthropic 订阅额度（**Claude Pro 订阅**每月 $20 起，学生党可以用免费的初始额度先玩一玩）。
+
+## 步骤 2：安装 Claude Code CLI
+
+\`\`\`bash
+# macOS / Linux
+curl -fsSL claude.ai/install.sh | bash
+
+# 或者用 npm（也可以）
+npm install -g @anthropic-ai/claude-code
+\`\`\`
+
+Windows 用户建议在 [WSL2](https://learn.microsoft.com/zh-cn/windows/wsl/install) 里跑（会 Linux 之后你会发现打开一个新世界）。
+
+## 步骤 3：登录
+
+\`\`\`bash
+claude login
+\`\`\`
+
+它会打开浏览器让你授权。授权完就好了。
+
+## 步骤 4：在项目里跑起来
+
+\`\`\`bash
+cd /path/to/web-dev-tutorial
+claude
+\`\`\`
+
+进入交互模式，看到 \`>\` 提示符。第一句可以问：
+
+\`\`\`
+> 帮我概括一下这个项目做什么的
+\`\`\`
+
+Claude 会自动读几个关键文件（README、package.json、schema.ts）然后给你答案。**它读文件的动作你能看见** —— 每读一个文件都会显示。
+
+## 常用命令（在 claude 交互里输入）
+
+| 命令 | 用途 |
+|---|---|
+| \`/help\` | 看所有命令 |
+| \`/clear\` | 清空当前对话（换个话题时用） |
+| \`/model\` | 切换模型（默认最强的，不用改） |
+| \`/memory\` | 让 Claude 记住某些偏好 |
+| Ctrl+C | 打断 Claude 当前动作 |
+| Ctrl+D 或 \`exit\` | 退出 |
+
+## 关键授权模式
+
+第一次让 Claude 编辑文件、跑命令时，它会问你要不要授权。选项通常有：
+
+- **每次问**（Safe）—— 每次都确认
+- **信任本项目**（Accept edits in this project）—— 授权后本项目内它自由改
+- **总是允许**（Always allow）—— 全局授权，慎用
+
+**建议**：新手先用"每次问"，熟悉了之后在信任的项目里用"信任本项目"。**不要用"总是允许"**，除非你完全理解风险。`,
+          },
+          {
+            kind: "note",
+            content: `🔒 **安全提示**：Claude Code 能改文件、跑命令 —— 它的能力等同于"你自己"。**永远不要**在 Claude 里跑你不理解的 git 操作（尤其是 \\\`git push --force\\\` 之类）。让 Claude 每次改动都先给你看 diff 再决定要不要接受。`,
+          },
+        ],
+      },
+      {
+        slug: "first-ai-task",
+        title: "第一个真实任务：让 AI 加个功能",
+        summary: "跟着一个完整例子，看 AI 怎么跨文件改动",
+        sections: [
+          {
+            kind: "text",
+            content: `# 第一个真实任务：让 AI 加个功能
+
+> **回顾**：上一章你装好了 Claude Code。
+> **本章**：跟着一个完整例子跑一遍 —— **给留言板加一个"点赞"功能**。
+> **为什么**：这样你能亲眼看 AI 怎么跨 3-4 个文件协同改动 —— 这是它最闪光的场景。
+
+
+## 需求
+
+给 \`demo/messages\` 加一个"点赞"：
+
+- 每条留言底部有个 👍 按钮
+- 点一下 +1，服务端持久化
+- 页面上实时显示点赞数
+
+涉及：数据库 schema、后端路由、前端组件、shared 类型 —— **4 层全打通**。
+
+## 步骤 1：给 AI 说清楚需求
+
+在项目根跑 \`claude\`，输入：
+
+\`\`\`
+> 我想给 demo/messages 加一个"点赞"功能：
+> 1. Message 表加个 likes 字段（int 默认 0）
+> 2. 后端加 POST /api/demo/messages/:id/like，每次调用 +1
+> 3. shared 里更新 messageSchema
+> 4. 前端 ListMessages 组件每条留言底部加一个👍按钮
+>
+> 请从数据库开始，一步步来。改动前先给我总结改哪些文件。
+\`\`\`
+
+**关键：把大目标拆成小步骤给 AI**。它擅长完成"清晰定义的一步"，不擅长完成"模糊的一整片"。
+
+## 步骤 2：审 AI 的方案
+
+Claude 会读几个文件，然后给你一个"我打算怎么改"的方案，可能长这样：
+
+\`\`\`
+我打算改 4 个文件：
+
+1. apps/api/src/db/schema.ts —— 给 messages 表加 likes: integer().default(0)
+2. apps/api/drizzle/xxx_add_likes.sql —— 生成 migration
+3. packages/shared/src/types.ts —— messageSchema 加 likes 字段
+4. apps/api/src/routes/demo-sandbox.ts —— 加 POST /messages/:id/like 路由
+5. apps/web/src/components/demos/ListMessages.tsx —— UI 加👍按钮
+
+需要我开始改动吗？
+\`\`\`
+
+**这一步你的角色**：审核方案。
+
+- 有没有漏（比如 migration 生成方式是不是我们项目的方式？）
+- 有没有多余（比如它想不想改一堆无关的东西？）
+- 命名合不合规（likes vs like_count？）
+
+如果 OK，说 "好的，开始改"；如果不 OK，指出问题让它重来。
+
+## 步骤 3：让 AI 一步步改，你逐个确认
+
+Claude 会一个文件一个文件改，每次都给你看 diff。
+
+**你的角色**：**看 diff**。别看得太粗（也别每个字都抠），关键看：
+
+- 逻辑对不对
+- 命名统一不统一
+- 有没有引入奇怪的依赖
+
+大多数时候直接 Accept；有问题就说 "第 3 处不对，likes 应该 default 0 而不是 null"。
+
+## 步骤 4：跑起来验证
+
+Claude 改完，你要**自己动手跑一次**：
+
+\`\`\`bash
+bun run db:generate    # 生成新 migration
+bun run db:migrate     # 应用
+bun run dev            # 起前后端
+\`\`\`
+
+打开浏览器点一下👍，看数据库里数字有没有加 1。
+
+**如果坏了**：把错误消息（浏览器控制台报错、后端日志报错）**原文粘给 Claude**：
+
+\`\`\`
+> 我点👍报错：Failed to fetch. 后端日志显示 "column likes does not exist"
+\`\`\`
+
+Claude 会分析：噢，我忘了跑 migration；或者：migration 生成的 SQL 有问题，改成 xxx。
+
+## 关键心法
+
+- **拆步骤**：大任务分小步给 AI
+- **看 diff**：不看等于放弃控制权
+- **粘错误原文**：报错信息越完整，AI 修得越准
+- **重启 dev server**：改了配置文件（比如 vite.config.ts）之后 HMR 不生效，重启一下
+
+熟练之后，加一个类似"点赞"的功能全流程 **10 分钟**。手写要 30-60 分钟。`,
+          },
+          {
+            kind: "note",
+            content: `🎯 **真正体验一次再看下一章**。理论没用，动手才有肌肉记忆。上面这个"点赞功能"就是最好的练手 —— 你完全按提示一步步做，就能亲手感受一次"和 AI 协作开发"是什么感觉。`,
+          },
+        ],
+      },
+      {
+        slug: "ai-project-tips",
+        title: "让 AI 在这个项目里更好用的小技巧",
+        summary: "CLAUDE.md、prompt 模式、常见坑",
+        sections: [
+          {
+            kind: "text",
+            content: `# 让 AI 在这个项目里更好用的小技巧
+
+> **回顾**：上一章带你跑了一次真实任务。
+> **本章**：几条能立刻提升 AI 效率的实战技巧。
+
+
+## 技巧 1：写一个 CLAUDE.md
+
+在项目根建一个 \`CLAUDE.md\`，Claude Code 每次会自动读它，作为"这个项目的使用手册"。
+
+样例内容：
+
+\`\`\`markdown
+# 项目上下文
+
+- Bun workspaces（不是 npm）
+- Tailwind v4（写 @theme 定义主题，不用 tailwind.config.js）
+- Drizzle 0.38，migration 走 db:generate + db:migrate
+- shared 里的 zod schema 是前后端契约
+
+# 常用命令
+
+- \`bun run dev\` 起前后端
+- \`bun run db:up\` 起数据库
+- \`bun run db:seed\` 灌数据
+
+# 规范
+
+- 提交前一定跑 \`bun run typecheck\` 和 \`bun run test\`
+- 别自动 commit，除非我明说
+\`\`\`
+
+**关键**：把项目里"AI 容易搞错的点"写清楚。比如 "Tailwind v4 而不是 v3"、"用 Bun 不是 npm"。
+
+## 技巧 2：用"读代码"命令建立上下文
+
+在动手让 AI 改代码之前，先让它**读一遍相关文件**：
+
+\`\`\`
+> 请读 apps/api/src/routes/chapters.ts 和 apps/web/src/routes/chapter.tsx，
+> 说说前后端如何配合的
+\`\`\`
+
+Claude 读完之后再改，命中率高很多。**你在建立共同上下文**。
+
+## 技巧 3：给不好的输出反馈
+
+AI 不是圣人，会写出你不喜欢的代码。**直接说**：
+
+- ❌ "这个不太好..." （AI 猜不到你意思）
+- ✅ "这个 useState 是多余的，因为 xxx 已经能推导出来。改成 useMemo。"
+
+Claude 越具体的反馈越能改进。**你不是在批评它，你在训练它**。
+
+## 技巧 4：处理"AI 无限循环"
+
+有时候 Claude 会：改完 → 报错 → 说要修 → 又错 → 再修 → 死循环。
+
+**打断它**（Ctrl+C），换个思路：
+
+- "先别改了，把这个错误的完整堆栈给我看"
+- 或者你自己上手看看，找到根因再让它改
+
+**别让 AI 自己在错误里打转**，浪费你的 API 额度。
+
+## 技巧 5：让 AI 做"审查者"
+
+除了让 AI 写代码，也能让它**看你写的代码**：
+
+\`\`\`
+> 我在 apps/web/src/components/ThemeToggle.tsx 加了 xxx 逻辑，
+> 帮我审一下有没有问题
+\`\`\`
+
+它会指出你没想到的边界情况、潜在 bug、代码风格问题。**免费的 code review**。
+
+## 常见坑
+
+| 坑 | 解决 |
+|---|---|
+| AI 改错了文件（改到无关地方） | 先让它"读"再让它"改"，或者明确 "只改 xxx 文件" |
+| AI 用了旧版本 API（比如 Tailwind v3 语法） | CLAUDE.md 里明确 "用 Tailwind v4，不是 v3" |
+| AI 说"改好了"但代码有 bug | 每次都自己跑一遍验证，别只看 diff |
+| API 额度爆了 | 用 \`/cost\` 看当前消耗；别开一堆并行任务 |
+
+## 什么时候不该用 AI
+
+- **学习基础**：入门时手写更能建立肌肉记忆。让 AI 替你写你就学不到
+- **凭直觉能秒解的小事**：改个文字、调个 padding，自己动手 5 秒的事没必要让 AI 转 30 秒
+- **超敏感的东西**：涉及安全、加密、生产数据的代码，AI 出错的代价高，人工审核门槛要拉满
+
+## 一句话总结
+
+**AI 让"你有的想法能变成代码"这件事门槛骤降**。但**你要有想法**、**你要能判断好坏** —— 这些能力还是要靠基础扎实、动手多、失败多来练。
+
+祝你早日和 AI 顺手合作，做出漂亮的东西。`,
+          },
+          {
+            kind: "note",
+            content: `🌱 **教程完结**：你已经走完了从"看懂网页三件套"到"用 AI 5 倍速做真实项目"的完整旅程。剩下的路，就是**开始做**。找一个你自己想做的小东西，clone 这个脚手架，让 Claude Code 帮你 —— 3 天内你就能有一个能给朋友看的 demo。**祝你的下一个作品让自己自豪。**`,
           },
         ],
       },

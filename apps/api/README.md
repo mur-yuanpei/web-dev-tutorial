@@ -12,6 +12,7 @@
 | 请求校验 | **`@hono/zod-validator`** + **Zod 3.24** | body/query 用 zod schema 声明式校验 |
 | ORM | **[Drizzle ORM](https://orm.drizzle.team) 0.38** | 类型安全的 SQL 构造器（贴近 SQL、不做黑盒抽象） |
 | 数据库 | **PostgreSQL 16-alpine**（Docker） | 生产用真 pg；测试用 [pglite](https://pglite.dev)（WASM in-memory） |
+| DB 可视化 | **[pgweb](https://sosedoff.github.io/pgweb/)** | 本地开发环境的浏览器数据库管理界面（http://localhost:8081，零登录） |
 | pg 客户端 | **`postgres` 3.4**（postgres-js） | Drizzle 底下的连接池 |
 | 迁移工具 | **drizzle-kit 0.30** | 由 `schema.ts` 生成 SQL migration |
 | 共享类型 | **`@app/shared`**（workspace） | zod schema + TS 类型，前后端复用 |

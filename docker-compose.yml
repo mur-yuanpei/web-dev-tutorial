@@ -27,6 +27,22 @@ services:
       timeout: 5s
       retries: 5
 
+  # pgweb —— 浏览器数据库管理，启动时传 DATABASE_URL，打开页面直接进库
+  # http://localhost:8081 —— 零配置、零登录、UI 现代
+  # 只在本地开发用；生产绝不要暴露 pgweb 到公网
+  pgweb:
+    image: sosedoff/pgweb:latest
+    container_name: web-tutor-pgweb
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      PGWEB_DATABASE_URL: postgres://dev:dev@postgres:5432/webtutor?sslmode=disable
+    command: pgweb --bind=0.0.0.0 --listen=8081
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   pgdata:
     name: web-dev-tutorial_pgdata

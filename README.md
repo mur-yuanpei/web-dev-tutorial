@@ -84,6 +84,7 @@ bun run dev
 
 打开 http://localhost:5173 —— 教程首页。
 后端 API 在 http://localhost:3000（试试 `/api/health`）。
+数据库可视化管理在 http://localhost:8081 （pgweb，本地开发已配置直连，点开即用）。
 
 ## 常用命令
 
@@ -139,6 +140,7 @@ docker exec -it web-tutor-postgres psql -U dev -d webtutor
 - **课程 8** 单元测试
 - **课程 9** 本项目全景
 - **课程 10** 使用脚手架开发指南
+- **课程 11** 用 AI 一起写代码（Claude Code）
 
 ## 部署
 
