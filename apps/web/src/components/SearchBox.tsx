@@ -37,7 +37,7 @@ export function SearchBox({ className }: SearchBoxProps) {
   return (
     <div
       className={cn(
-        "flex items-center gap-2 h-10 px-3 rounded-md bg-white/10 border border-white/15 text-[--color-sidebar-foreground] focus-within:bg-white/15 focus-within:border-white/25 transition-colors",
+        "flex items-center gap-2 h-9 px-3 rounded-md bg-current/10 border border-current/20 focus-within:bg-current/15 focus-within:border-current/30 transition-colors",
         className,
       )}
     >
@@ -48,19 +48,19 @@ export function SearchBox({ className }: SearchBoxProps) {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="搜索课程内容..."
-        className="flex-1 bg-transparent outline-none placeholder:text-[--color-sidebar-muted] text-sm"
+        className="flex-1 bg-transparent outline-none placeholder:opacity-60 text-sm"
       />
       {query ? (
         <button
           type="button"
           onClick={() => setQuery("")}
           aria-label="清空"
-          className="text-[--color-sidebar-muted] hover:text-[--color-sidebar-foreground]"
+          className="opacity-60 hover:opacity-100"
         >
           <X className="h-3.5 w-3.5" />
         </button>
       ) : (
-        <kbd className="hidden lg:inline-flex items-center gap-1 rounded border border-white/20 px-1.5 h-5 text-[10px] text-[--color-sidebar-muted] font-mono">
+        <kbd className="hidden lg:inline-flex items-center gap-1 rounded border border-current/25 px-1.5 h-5 text-[10px] opacity-60 font-mono">
           ⌘K
         </kbd>
       )}

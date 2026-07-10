@@ -1,16 +1,17 @@
 // --------------------------------------------------------------
-// 左侧导航栏（元培学院酒红古典风）
-// - 深酒红底 + 白色 serif 文字
+// 左侧导航栏（元培学院古典风）
+// - 米色底 + 深酒红 serif 文字
 // - 课程带大号 serif 数字前缀 (00 / 01 / 02 ...)
 // - 当前项高亮为"下划线 + 加粗"（学院气质，不用色块）
 // --------------------------------------------------------------
 
 import type { NavCourse } from "@app/shared";
 import { ChevronRight, Home } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, useLocation, useParams } from "react-router";
-import { cn } from "@/lib/utils";
+import { cn, formatIndex } from "@/lib/utils";
 import { useSearch } from "@/root";
+import { SearchBox } from "./SearchBox";
 
 interface SidebarProps {
   tree: NavCourse[];
@@ -29,15 +30,28 @@ export function Sidebar({ tree, onNavigate, className }: SidebarProps) {
   // 折叠状态：不在当前课程内的会默认折叠
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
-  // 路由变化时通知外层
+  // 路由变化时通知外层（例如移动端关闭抽屉）
+  // 注意：初次挂载不算变化，否则一打开抽屉就会立即关掉
+  const initialPath = useRef(location.pathname);
   useEffect(() => {
-    onNavigate?.();
+    if (location.pathname !== initialPath.current) {
+      onNavigate?.();
+      initialPath.current = location.pathname;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
   function toggle(slug: string) {
     setCollapsed((prev) => ({ ...prev, [slug]: !prev[slug] }));
   }
+
+  // 课程 slug → 在 tree 中的下标，用于 Sidebar 数字前缀（00/01/02...）
+  // 用 Map 一次算好，避免每次 render 都 O(n) findIndex
+  const indexBySlug = useMemo(() => {
+    const m = new Map<string, number>();
+    tree.forEach((c, i) => m.set(c.slug, i));
+    return m;
+  }, [tree]);
 
   // 搜索过滤：course.title 命中或 chapter.title 命中都保留
   const filteredTree = useMemo(() => {
@@ -63,11 +77,15 @@ export function Sidebar({ tree, onNavigate, className }: SidebarProps) {
   return (
     <div
       className={cn(
-        "flex flex-col h-full w-full overflow-hidden bg-[--color-sidebar] text-[--color-sidebar-foreground]",
+        "flex flex-col h-full w-full overflow-hidden bg-[var(--color-sidebar)] text-[var(--color-sidebar-foreground)]",
         className,
       )}
     >
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+        {/* 移动端 Sheet 里的搜索框（顶栏已有搜索，桌面隐藏此处避免重复） */}
+        <div className="lg:hidden p-3 border-b border-[var(--color-sidebar-border)]">
+          <SearchBox />
+        </div>
         <nav className="p-4 space-y-0.5">
           <NavLink
             to="/"
@@ -76,8 +94,8 @@ export function Sidebar({ tree, onNavigate, className }: SidebarProps) {
               cn(
                 "flex items-center gap-2 px-2 py-2 text-sm font-medium transition-colors",
                 isActive
-                  ? "text-[--color-sidebar-accent] font-semibold"
-                  : "text-[--color-sidebar-foreground]/85 hover:text-[--color-sidebar-foreground]",
+                  ? "text-[var(--color-sidebar-accent)] font-semibold"
+                  : "text-[var(--color-sidebar-foreground)]/85 hover:text-[var(--color-sidebar-foreground)]",
               )
             }
           >
@@ -87,12 +105,12 @@ export function Sidebar({ tree, onNavigate, className }: SidebarProps) {
 
           <div className="pt-3 space-y-1">
             {noResult && (
-              <div className="px-2 py-6 text-center text-sm text-[--color-sidebar-muted]">
+              <div className="px-2 py-6 text-center text-sm text-[var(--color-sidebar-muted)]">
                 未找到与"{query}"相关的课程
               </div>
             )}
             {filteredTree.map((course) => {
-              const i = tree.findIndex((c) => c.slug === course.slug);
+              const i = indexBySlug.get(course.slug) ?? 0;
               const isActiveCourse = course.slug === activeCourseSlug;
               // 搜索时强制展开命中的课程
               const isCollapsed = hasQuery
@@ -108,8 +126,8 @@ export function Sidebar({ tree, onNavigate, className }: SidebarProps) {
                         cn(
                           "flex-1 flex items-baseline gap-2.5 px-2 py-1.5 min-w-0 transition-colors",
                           isActive || isActiveCourse
-                            ? "text-[--color-sidebar-accent] font-semibold"
-                            : "text-[--color-sidebar-foreground]/90 hover:text-[--color-sidebar-foreground]",
+                            ? "text-[var(--color-sidebar-accent)] font-semibold"
+                            : "text-[var(--color-sidebar-foreground)]/90 hover:text-[var(--color-sidebar-foreground)]",
                         )
                       }
                     >
@@ -117,11 +135,11 @@ export function Sidebar({ tree, onNavigate, className }: SidebarProps) {
                         className={cn(
                           "font-serif text-lg leading-none w-6 shrink-0 tabular-nums",
                           isActiveCourse
-                            ? "text-[--color-sidebar-accent]"
-                            : "text-[--color-sidebar-muted]",
+                            ? "text-[var(--color-sidebar-accent)]"
+                            : "text-[var(--color-sidebar-muted)]",
                         )}
                       >
-                        {String(i).padStart(2, "0")}
+                        {formatIndex(i)}
                       </span>
                       <span
                         className={cn(
@@ -137,7 +155,7 @@ export function Sidebar({ tree, onNavigate, className }: SidebarProps) {
                       type="button"
                       onClick={() => toggle(course.slug)}
                       aria-label={isCollapsed ? "展开" : "折叠"}
-                      className="px-2 shrink-0 text-[--color-sidebar-muted] hover:text-[--color-sidebar-foreground]"
+                      className="px-2 shrink-0 text-[var(--color-sidebar-muted)] hover:text-[var(--color-sidebar-foreground)]"
                     >
                       <ChevronRight
                         className={cn(
@@ -149,7 +167,7 @@ export function Sidebar({ tree, onNavigate, className }: SidebarProps) {
                   </div>
 
                   {!isCollapsed && (
-                    <ul className="ml-8 mt-1 space-y-0.5 border-l border-[--color-sidebar-border] pl-3 min-w-0">
+                    <ul className="ml-8 mt-1 space-y-0.5 border-l border-[var(--color-sidebar-border)] pl-3 min-w-0">
                       {course.chapters.map((ch) => (
                         <li key={ch.slug} className="min-w-0">
                           <NavLink
@@ -159,8 +177,8 @@ export function Sidebar({ tree, onNavigate, className }: SidebarProps) {
                               cn(
                                 "block px-2 py-1 text-sm truncate transition-colors",
                                 isActive
-                                  ? "text-[--color-sidebar-accent] font-medium"
-                                  : "text-[--color-sidebar-foreground]/70 hover:text-[--color-sidebar-foreground]",
+                                  ? "text-[var(--color-sidebar-accent)] font-medium"
+                                  : "text-[var(--color-sidebar-foreground)]/70 hover:text-[var(--color-sidebar-foreground)]",
                               )
                             }
                           >

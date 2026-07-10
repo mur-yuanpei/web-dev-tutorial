@@ -42,36 +42,36 @@ export function ChapterPage() {
   }, [headings, setHeadings]);
 
   return (
-    <article className="space-y-8">
+    <article className="space-y-6 sm:space-y-8">
       {/* 面包屑 */}
-      <nav className="text-sm text-[--color-muted-foreground] flex items-center gap-2">
+      <nav className="text-xs sm:text-sm text-[--color-muted-foreground] flex items-center gap-2 flex-wrap">
         <Link to="/" className="hover:text-[--color-primary]">
           课程列表
         </Link>
         <span className="text-[--color-border]">/</span>
-        <Link to={`/courses/${chapter.course.slug}`} className="hover:text-[--color-primary]">
+        <Link to={`/courses/${chapter.course.slug}`} className="hover:text-[--color-primary] truncate max-w-[60%]">
           {chapter.course.title}
         </Link>
       </nav>
 
       {/* 标题区 */}
       <header className="space-y-3 pb-2">
-        <h1 className="font-serif text-3xl md:text-4xl font-bold tracking-tight leading-tight text-[--color-primary]">
+        <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight leading-tight text-[--color-primary]">
           {chapter.title}
         </h1>
-        <p className="text-lg text-[--color-muted-foreground] leading-relaxed">{chapter.summary}</p>
+        <p className="text-base sm:text-lg text-[--color-muted-foreground] leading-relaxed">{chapter.summary}</p>
       </header>
 
       <OrnamentDivider />
 
       {/* 正文 */}
-      <div className="space-y-6">
+      <div className="space-y-5 sm:space-y-6">
         {chapter.sections.map((s) => {
           if (s.kind === "code") {
             return (
               <pre
                 key={s.id}
-                className="p-4 rounded-md bg-[--color-secondary] border border-[--color-border] border-l-[3px] border-l-[--color-primary] overflow-x-auto text-sm font-mono"
+                className="p-3 sm:p-4 rounded-md bg-[--color-secondary] border border-[--color-border] border-l-[3px] border-l-[--color-primary] overflow-x-auto text-xs sm:text-sm font-mono"
               >
                 <code>{s.content}</code>
               </pre>
@@ -83,7 +83,7 @@ export function ChapterPage() {
                 key={s.id}
                 className="border-l-[3px] border-l-[--color-accent] bg-[--color-secondary]/60"
               >
-                <CardContent className="pt-6">
+                <CardContent className="pt-5 sm:pt-6 px-4 sm:px-6">
                   <MarkdownRenderer content={s.content} />
                 </CardContent>
               </Card>

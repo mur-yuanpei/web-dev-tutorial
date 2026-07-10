@@ -8,6 +8,7 @@ import { Link, useLoaderData } from "react-router";
 import { OrnamentDivider } from "@/components/brand/OrnamentDivider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatIndex } from "@/lib/utils";
 import { api } from "../lib/api.js";
 
 export async function homeLoader(): Promise<Course[]> {
@@ -26,22 +27,22 @@ export function HomePage() {
   const firstCourse = courses[0];
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-12 sm:space-y-16">
       {/* Hero */}
-      <section className="space-y-6 pt-4 text-center">
-        <div className="text-xs tracking-[0.5em] text-[--color-accent] font-medium">
+      <section className="space-y-5 sm:space-y-6 pt-2 sm:pt-4 text-center">
+        <div className="text-[10px] sm:text-xs tracking-[0.4em] sm:tracking-[0.5em] text-[--color-accent] font-medium">
           YUANPEI COLLEGE · WEB DEVELOPMENT
         </div>
-        <h1 className="font-serif text-4xl md:text-6xl font-bold tracking-tight leading-tight text-[--color-primary]">
+        <h1 className="font-serif text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight leading-tight text-[--color-primary]">
           元培学院 Web 开发教程
         </h1>
-        <p className="text-[--color-muted-foreground] text-lg font-serif">
+        <p className="text-[--color-muted-foreground] text-base sm:text-lg font-serif">
           厚德载物 · 自强不息 —— 从零学 Web 全栈开发
         </p>
 
         <OrnamentDivider />
 
-        <div className="max-w-[64ch] mx-auto space-y-4 text-[--color-foreground]/85 leading-relaxed text-left">
+        <div className="max-w-[64ch] mx-auto space-y-4 text-[--color-foreground]/85 leading-relaxed text-left text-[15px] sm:text-base">
           <p>
             这是<b className="text-[--color-primary]">元培学院</b>与
             <b className="text-[--color-primary]">腾讯 IEG 用户研究与市场部门</b>合作的
@@ -101,7 +102,7 @@ export function HomePage() {
               <Card className="h-full transition-all hover:border-[--color-primary] hover:shadow-md">
                 <CardHeader className="pb-3">
                   <div className="font-serif text-2xl text-[--color-primary]/60 tabular-nums leading-none">
-                    {String(i).padStart(2, "0")}
+                    {formatIndex(i)}
                   </div>
                   <CardTitle className="text-lg mt-2 font-serif text-[--color-primary]">
                     {c.title}

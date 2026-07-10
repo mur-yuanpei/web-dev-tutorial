@@ -23,14 +23,8 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
   });
 
   useEffect(() => {
-    const el = document.documentElement;
-    if (dark) {
-      el.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      el.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
+    document.documentElement.classList.toggle("dark", dark);
+    localStorage.setItem("theme", dark ? "dark" : "light");
   }, [dark]);
 
   return (

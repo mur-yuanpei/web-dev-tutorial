@@ -11,3 +11,11 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+/**
+ * 把课程/章节序号补零到 2 位 —— 元培古典风的编号样式
+ * formatIndex(0) → "00"，formatIndex(7) → "07"，formatIndex(12) → "12"
+ */
+export function formatIndex(n: number) {
+  return String(n).padStart(2, "0");
+}

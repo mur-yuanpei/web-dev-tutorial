@@ -8,6 +8,7 @@ import { Link, type LoaderFunctionArgs, useLoaderData } from "react-router";
 import { OrnamentDivider } from "@/components/brand/OrnamentDivider";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { formatIndex } from "@/lib/utils";
 import { api } from "../lib/api.js";
 
 export async function courseLoader({ params }: LoaderFunctionArgs): Promise<CourseWithChapters> {
@@ -30,10 +31,10 @@ export function CoursePage() {
       </Link>
 
       <header className="space-y-3">
-        <div className="font-serif text-6xl text-[--color-primary]/25 tabular-nums leading-none">
-          {String(course.order).padStart(2, "0")}
+        <div className="font-serif text-5xl sm:text-6xl text-[--color-primary]/25 tabular-nums leading-none">
+          {formatIndex(course.order)}
         </div>
-        <h1 className="font-serif text-3xl md:text-4xl font-bold tracking-tight text-[--color-primary]">
+        <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-[--color-primary]">
           {course.title}
         </h1>
         <p className="text-[--color-foreground]/80 leading-relaxed">{course.description}</p>
@@ -50,7 +51,7 @@ export function CoursePage() {
                 <Card className="transition-all hover:border-[--color-primary] hover:shadow-sm">
                   <CardContent className="flex items-start gap-4 p-4">
                     <span className="font-serif text-xl text-[--color-primary]/50 pt-0.5 tabular-nums w-8 shrink-0">
-                      {String(i + 1).padStart(2, "0")}
+                      {formatIndex(i + 1)}
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="font-serif font-medium text-[15px] text-[--color-foreground] group-hover:text-[--color-primary]">

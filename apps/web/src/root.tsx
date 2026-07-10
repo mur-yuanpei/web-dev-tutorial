@@ -2,15 +2,15 @@
 // 根布局：顶栏（固定）+ 三栏（各自独立滚动）
 //
 // 页面撑满 viewport 高度：
-//   [顶栏 h-20 固定]
+//   [顶栏 手机 h-14 / 桌面 h-20 固定]
 //   [三栏区 flex-1 min-h-0]
 //     ├── 左 Sidebar   自己滚动
 //     ├── 中 正文       自己滚动
 //     └── 右 TOC        自己滚动
 //
 // - 桌面 lg+：三栏全展示
-// - 平板 md：Sidebar + 正文；右 TOC 隐藏
-// - 手机：都隐藏，Sidebar 靠顶栏"汉堡"打开为抽屉
+// - 手机 / 平板 md：只有正文；左 Sidebar 靠顶栏"汉堡"打开为抽屉
+//   （Sheet 里的 Sidebar 顶部内嵌搜索框，弥补顶栏搜索被隐藏）
 // - 章节页通过 useTocSetter() 传 headings 给右侧 TOC
 // --------------------------------------------------------------
 
@@ -67,7 +67,7 @@ export function Root() {
   // 路由切换时把正文滚动条归零 —— <main> 是自己的滚动容器，
   // window 不滚，所以 React Router 默认的滚动重置对它无效
   useEffect(() => {
-    mainRef.current?.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    mainRef.current?.scrollTo(0, 0);
   }, [pathname]);
 
   return (
@@ -76,11 +76,11 @@ export function Root() {
         <div className="h-screen flex flex-col overflow-hidden bg-[--color-background] text-[--color-foreground]">
           <AppHeader onOpenSidebar={() => setMobileOpen(true)} />
 
-          {/* 移动端抽屉 —— 用深红背景匹配 Sidebar */}
+          {/* 移动端抽屉 —— Sidebar 自带米色底 */}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetContent
               side="left"
-              className="w-72 p-0 bg-[--color-sidebar] border-[--color-sidebar-border]"
+              className="w-[85vw] max-w-xs p-0 border-[var(--color-border)]"
             >
               <Sidebar tree={tree} onNavigate={() => setMobileOpen(false)} />
             </SheetContent>
@@ -95,11 +95,11 @@ export function Root() {
 
             {/* 主内容 —— 独立滚动容器 */}
             <main ref={mainRef} className="min-w-0 h-full overflow-y-auto">
-              <div className="max-w-[760px] mx-auto px-6 py-10 lg:py-14">
+              <div className="max-w-[760px] mx-auto px-4 sm:px-6 py-6 sm:py-10 lg:py-14">
                 <Outlet />
               </div>
               <footer className="border-t border-[--color-border] py-6 bg-[--color-muted]/50 mt-8">
-                <div className="max-w-5xl mx-auto px-6 text-center text-xs text-[--color-muted-foreground] font-serif tracking-wide">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center text-xs text-[--color-muted-foreground] font-serif tracking-wide">
                   元培学院 · Web 开发教程 · 项目本身即教程范本
                 </div>
               </footer>
