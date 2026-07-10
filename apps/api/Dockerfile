@@ -45,16 +45,36 @@ COPY . .
 RUN bun --filter @app/api typecheck
 
 
+# -------------------- 阶段 2.5：prod-deps 只装生产依赖 --------------------
+# runner 只需要 hono/drizzle-orm/postgres/zod 等 runtime 包，
+# 不需要 vitest / pglite / drizzle-kit / @types/* 等 dev deps。
+# 单独一层重装 --production，让 runner 镜像瘦身（~127MB → ~30-40MB）。
+FROM oven/bun:1.3.11-alpine AS prod-deps
+WORKDIR /app
+
+COPY package.json bun.lock ./
+COPY apps/api/package.json ./apps/api/
+COPY apps/web/package.json ./apps/web/
+COPY packages/shared/package.json ./packages/shared/
+
+RUN bun install --frozen-lockfile --production
+
+
 # -------------------- 阶段 3：runner 最小运行时 --------------------
-# 注意：从 builder 阶段（而不是 deps）拿依赖 —— 让 typecheck 成为发布的强制门槛。
-# 如果 builder 里的 typecheck 失败，本阶段构建也会失败。
+# 关键：typecheck 由 builder 阶段完成（构成发布的强制门槛，失败则本阶段也无法构建，
+# 因为 buildx 会并行调度多个 stage 但最终 target=runner 依赖 builder 通过）。
+# node_modules 从 prod-deps 拿 —— 剥离所有 devDependencies，让 push 秒完成。
 FROM oven/bun:1.3.11-alpine AS runner
 WORKDIR /app
 
+# 让 buildkit 知道 runner 依赖 builder 通过 —— 用一个空 COPY 建立依赖边
+# （否则 target=runner 时 builder 阶段可能被跳过，typecheck 就失去意义）
+COPY --from=builder /app/package.json /tmp/typecheck-guard.json
+
 # 生产依赖 + 源码 + drizzle migration 目录
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
-COPY --from=builder /app/packages/shared/node_modules ./packages/shared/node_modules
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=prod-deps /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=prod-deps /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY package.json bun.lock ./
 COPY apps/api ./apps/api
 COPY packages/shared ./packages/shared

@@ -87,8 +87,11 @@ jobs:
           provenance: false
           sbom: false
           # GitHub Actions 自带的缓存，per-service 隔离避免互踩
+          # mode=min：只缓存最终镜像 export 的层，不缓存所有中间层。
+          # GHA cache 有 10GB 配额，mode=max 一个 service 就能占 500MB+ 迅速被 evict；
+          # mode=min 单 service 只留 50-100MB，命中率反而更高。
           cache-from: type=gha,scope=${{ matrix.service }}
-          cache-to: type=gha,scope=${{ matrix.service }},mode=max
+          cache-to: type=gha,scope=${{ matrix.service }},mode=min
 
   # ---------------- Job 2: 在 CVM 上直接部署（self-hosted runner） ----------------
   # runs-on: self-hosted → GitHub 会把此 job 派发到 CVM 上的 runner 进程
