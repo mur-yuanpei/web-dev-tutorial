@@ -15,8 +15,8 @@
 // --------------------------------------------------------------
 
 import type { NavCourse } from "@app/shared";
-import { createContext, useContext, useState } from "react";
-import { Outlet, useLoaderData } from "react-router";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { Outlet, useLoaderData, useLocation } from "react-router";
 
 import { AppHeader } from "./components/AppHeader";
 import { Sidebar } from "./components/Sidebar";
@@ -61,6 +61,14 @@ export function Root() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [headings, setHeadings] = useState<Heading[]>([]);
   const [query, setQuery] = useState("");
+  const mainRef = useRef<HTMLElement>(null);
+  const { pathname } = useLocation();
+
+  // 路由切换时把正文滚动条归零 —— <main> 是自己的滚动容器，
+  // window 不滚，所以 React Router 默认的滚动重置对它无效
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [pathname]);
 
   return (
     <TocContext.Provider value={{ setHeadings }}>
@@ -86,7 +94,7 @@ export function Root() {
             </div>
 
             {/* 主内容 —— 独立滚动容器 */}
-            <main className="min-w-0 h-full overflow-y-auto">
+            <main ref={mainRef} className="min-w-0 h-full overflow-y-auto">
               <div className="max-w-[760px] mx-auto px-6 py-10 lg:py-14">
                 <Outlet />
               </div>
