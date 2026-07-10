@@ -81,6 +81,11 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # 关掉 OCI 1.1 attestation（provenance / SBOM）
+          # 原因：腾讯云 TCR 对 OCI 1.1 referrers API 支持不全，
+          # buildx 推 attestation manifest 时会返回 401 导致构建失败
+          provenance: false
+          sbom: false
           # GitHub Actions 自带的缓存，per-service 隔离避免互踩
           cache-from: type=gha,scope=${{ matrix.service }}
           cache-to: type=gha,scope=${{ matrix.service }},mode=max
