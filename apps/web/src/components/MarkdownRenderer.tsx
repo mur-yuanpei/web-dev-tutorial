@@ -5,6 +5,9 @@
 //
 // 对 h2/h3 自动加 id（与 lib/toc.ts 的 slugify 保持一致），
 // 让右侧 TOC 的锚点跳转能生效
+//
+// h1 隐藏 —— 章节页有独立的 <h1>{chapter.title}</h1>，
+// 避免正文里的 `# 标题` 与页面顶部标题重复
 // --------------------------------------------------------------
 
 import type { HTMLAttributes, ReactNode } from "react";
@@ -40,15 +43,26 @@ function Hr() {
   return <OrnamentDivider />;
 }
 
+/** 隐藏一级标题 —— 页面顶部已经有 chapter.title */
+function HiddenH1() {
+  return null;
+}
+
 export function MarkdownRenderer({ content }: { content: string }) {
   return (
     <article className="prose max-w-none">
       <Markdown
         remarkPlugins={[remarkGfm]}
-        components={{ h2: makeHeading("h2"), h3: makeHeading("h3"), hr: Hr }}
+        components={{
+          h1: HiddenH1,
+          h2: makeHeading("h2"),
+          h3: makeHeading("h3"),
+          hr: Hr,
+        }}
       >
         {content}
       </Markdown>
     </article>
   );
 }
+

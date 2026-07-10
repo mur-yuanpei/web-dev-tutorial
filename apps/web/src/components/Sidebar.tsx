@@ -9,7 +9,6 @@ import type { NavCourse } from "@app/shared";
 import { ChevronRight, Home } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { NavLink, useLocation, useParams } from "react-router";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useSearch } from "@/root";
 
@@ -68,7 +67,7 @@ export function Sidebar({ tree, onNavigate, className }: SidebarProps) {
         className,
       )}
     >
-      <ScrollArea className="flex-1">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
         <nav className="p-4 space-y-0.5">
           <NavLink
             to="/"
@@ -176,7 +175,7 @@ export function Sidebar({ tree, onNavigate, className }: SidebarProps) {
             })}
           </div>
         </nav>
-      </ScrollArea>
+      </div>
     </div>
   );
 }

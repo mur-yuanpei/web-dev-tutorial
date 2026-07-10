@@ -82,11 +82,25 @@ const SEED: SeedCourse[] = [
 ## 需要准备什么
 
 - 一台电脑（Mac / Windows / Linux 都行）
+- **注册一个 [GitHub 账号](https://github.com/signup)**（**必做** —— 后续所有项目、作业、代码都在 GitHub 上开发和提交）
 - 装好 [Bun](https://bun.sh)（一个命令：\`curl -fsSL https://bun.sh/install | bash\`）
 - 装好 [Docker Desktop](https://www.docker.com/products/docker-desktop/)（图形化下载安装即可）
+- 装好 [Git](https://git-scm.com/downloads)（Mac 一般已自带；Windows 需下载安装）
 - 一个终端（Mac 自带 Terminal / Windows 用 PowerShell / Linux 用你熟悉的）
 
-准备好这三样，进入下一章。`,
+准备好这些，进入下一章。
+
+## 关于 GitHub
+
+GitHub 是全世界程序员**存代码、协作、找工作**的地方 —— 相当于程序员的"简历 + 作品集"。
+
+**推荐同时做：**
+
+1. 用**真实姓名**或**常用昵称**注册（**不要**用一堆数字或乱码，将来找实习面试官会看你的 GitHub）
+2. 头像上传一张你自己的照片
+3. 简介里写一句自我介绍（比如"元培学院 2024 级 · 学习 Web 开发中"）
+
+**后续所有教程作业**都会以"在你自己的 GitHub 仓库里完成"为交付方式。`,
           },
           {
             kind: "note",
@@ -116,6 +130,7 @@ const SEED: SeedCourse[] = [
 \`\`\`bash
 bun --version    # 应该输出版本号，如 1.3.11
 docker --version # 应该输出版本号
+git --version    # 应该输出版本号，如 git version 2.x
 \`\`\`
 
 有 Docker 但没启动？打开 Docker Desktop 应用等它变成"绿色 running"。
