@@ -102,8 +102,33 @@ jobs:
     runs-on: self-hosted
     if: github.event_name == 'push'  # 手动触发只用于 seed，不做部署
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      # CVM 到 GitHub 跨境链路时好时坏，checkout 常在握手阶段就卡 300s 超时。
+      # 双重加固：
+      #   1) sparse-checkout：只拉 deploy/ 目录（这个 job 只需要 docker-compose.prod.yml）
+      #      —— 传输量从整个仓库 (含 4000+ 行教程 seed.ts) 降到几十 KB
+      #   2) nick-fields/retry：单次 3 分钟超时后自动重试，最多 3 次
+      #      —— 覆盖偶发抖动，网络突然不通时不会一次就 fail
+      # 手写 git 命令而不是直接嵌 actions/checkout，是因为 retry action
+      # 只能 wrap shell 命令，不能 wrap 另一个 GitHub Action
+      - name: Checkout deploy/（sparse + 超时重试）
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 3
+          max_attempts: 3
+          retry_wait_seconds: 10
+          command: |
+            set -euo pipefail
+            cd "${GITHUB_WORKSPACE}"
+            # 清理上一次 checkout 的残留（sparse 目录 + git 元数据）
+            rm -rf .git deploy 2>/dev/null || true
+            git init -b main
+            git remote add origin \
+              "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+            git config core.sparseCheckout true
+            git config core.sparseCheckoutCone false
+            echo "deploy/" > .git/info/sparse-checkout
+            git fetch --depth=1 origin ${{ github.sha }}
+            git checkout FETCH_HEAD
 
       - name: Sync compose file to /opt/web-tutor
         run: cp deploy/docker-compose.prod.yml /opt/web-tutor/
