@@ -80,6 +80,7 @@ export function Root() {
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetContent
               side="left"
+              onOpenAutoFocus={(e) => e.preventDefault()}
               className="w-[85vw] max-w-xs p-0 border-[var(--color-border)]"
             >
               <Sidebar tree={tree} onNavigate={() => setMobileOpen(false)} />

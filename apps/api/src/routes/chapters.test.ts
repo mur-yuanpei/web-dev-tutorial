@@ -63,8 +63,31 @@ describe("GET /api/chapters/:slug", () => {
     expect(body.prevChapter).toBeNull();
   });
 
-  it("末章 nextChapter = null", async () => {
+  it("末章跳到下一课程首章（nextChapter.courseTitle 有值）", async () => {
     await seedThreeChapters();
+    // 加一门下一课程
+    const [c2] = await testDb
+      .insert(courses)
+      .values({ slug: "c2", title: "第二门课", description: "d2", order: 1 })
+      .returning();
+    if (!c2) throw new Error("insert c2 failed");
+    await testDb
+      .insert(chapters)
+      .values({ courseId: c2.id, slug: "c2--first", title: "首章", summary: "s", order: 0 });
+
+    const res = await app.request("/api/chapters/c--z");
+    const body = (await res.json()) as {
+      nextChapter: { slug: string; title: string; courseTitle?: string } | null;
+    };
+    expect(body.nextChapter).not.toBeNull();
+    expect(body.nextChapter?.slug).toBe("c2--first");
+    expect(body.nextChapter?.title).toBe("首章");
+    expect(body.nextChapter?.courseTitle).toBe("第二门课");
+  });
+
+  it("整站末章 nextChapter = null（没有下一门课）", async () => {
+    await seedThreeChapters();
+    // 不加任何后续课程 → 末章 c--z 无 next
     const res = await app.request("/api/chapters/c--z");
     const body = (await res.json()) as { nextChapter: unknown };
     expect(body.nextChapter).toBeNull();

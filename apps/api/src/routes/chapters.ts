@@ -3,11 +3,11 @@
 // --------------------------------------------------------------
 
 import type { ChapterDetail } from "@app/shared";
-import { and, asc, eq, gt, lt } from "drizzle-orm";
+import { and, asc, desc, eq, gt, lt } from "drizzle-orm";
 import { Hono } from "hono";
 
 import { db } from "../db/client.js";
-import { chapters, sections } from "../db/schema.js";
+import { chapters, courses, sections } from "../db/schema.js";
 
 export const chaptersRoute = new Hono();
 
@@ -29,20 +29,43 @@ chaptersRoute.get("/:slug", async (c) => {
     return c.json({ error: "章节不存在" }, 404);
   }
 
-  // 找同一课程内的前后章节（用 order 字段做前驱/后继查询）
+  // 同课程内前一章（order 比当前小的最大者）
   const [prevRow] = await db
     .select({ slug: chapters.slug, title: chapters.title })
     .from(chapters)
     .where(and(eq(chapters.courseId, chapter.courseId), lt(chapters.order, chapter.order)))
-    .orderBy(asc(chapters.order))
+    .orderBy(desc(chapters.order))
     .limit(1);
 
-  const [nextRow] = await db
+  // 同课程内后一章（order 比当前大的最小者）
+  const [sameCourseNext] = await db
     .select({ slug: chapters.slug, title: chapters.title })
     .from(chapters)
     .where(and(eq(chapters.courseId, chapter.courseId), gt(chapters.order, chapter.order)))
     .orderBy(asc(chapters.order))
     .limit(1);
+
+  // 如果同课程没有后一章，跳到下一门课程的第一章，用 courseTitle 标注跨课程
+  let nextChapter: ChapterDetail["nextChapter"] = sameCourseNext ?? null;
+  if (!sameCourseNext) {
+    const nextCourse = await db.query.courses.findFirst({
+      where: gt(courses.order, chapter.course.order),
+      orderBy: [asc(courses.order)],
+    });
+    if (nextCourse) {
+      const firstChapter = await db.query.chapters.findFirst({
+        where: eq(chapters.courseId, nextCourse.id),
+        orderBy: [asc(chapters.order)],
+      });
+      if (firstChapter) {
+        nextChapter = {
+          slug: firstChapter.slug,
+          title: firstChapter.title,
+          courseTitle: nextCourse.title,
+        };
+      }
+    }
+  }
 
   const result: ChapterDetail = {
     id: chapter.id,
@@ -69,7 +92,7 @@ chaptersRoute.get("/:slug", async (c) => {
       content: s.content,
     })),
     prevChapter: prevRow ?? null,
-    nextChapter: nextRow ?? null,
+    nextChapter,
   };
 
   return c.json(result);

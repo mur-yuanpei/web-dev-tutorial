@@ -133,9 +133,14 @@ export function ChapterPage() {
             <Card className="transition-all hover:border-[--color-primary] hover:shadow-sm h-full">
               <CardContent className="p-4 sm:text-right">
                 <div className="text-xs text-[--color-muted-foreground] flex items-center gap-1 sm:justify-end">
-                  下一章
+                  {chapter.nextChapter.courseTitle ? "下一课程" : "下一章"}
                   <ChevronRight className="h-3 w-3" />
                 </div>
+                {chapter.nextChapter.courseTitle && (
+                  <div className="text-xs text-[--color-muted-foreground] mt-1">
+                    《{chapter.nextChapter.courseTitle}》
+                  </div>
+                )}
                 <div className="mt-1 font-serif font-medium text-[--color-primary]">
                   {chapter.nextChapter.title}
                 </div>

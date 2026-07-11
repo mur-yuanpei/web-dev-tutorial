@@ -55,7 +55,15 @@ export const chapterDetailSchema = chapterSchema.extend({
   course: courseSchema,
   sections: z.array(sectionSchema),
   prevChapter: z.object({ slug: z.string(), title: z.string() }).nullable(),
-  nextChapter: z.object({ slug: z.string(), title: z.string() }).nullable(),
+  // nextChapter.courseTitle 只在**跨课程跳转**时有值（同课程内下一章为 undefined）
+  // 前端用它区分渲染"下一章"还是"下一课程：《XXX》"
+  nextChapter: z
+    .object({
+      slug: z.string(),
+      title: z.string(),
+      courseTitle: z.string().optional(),
+    })
+    .nullable(),
 });
 export type ChapterDetail = z.infer<typeof chapterDetailSchema>;
 
